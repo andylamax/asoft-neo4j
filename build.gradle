@@ -1,0 +1,167 @@
+buildscript {
+    ext {
+        kotlin_version = '1.3.41'
+        neo4j_version = "3.1.2"
+    }
+
+    repositories {
+        google()
+        jcenter()
+    }
+    
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+plugins {
+    id 'kotlin-multiplatform' version '1.3.31'
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name.contains("install")) {
+//        task.enabled = false
+    }
+}
+
+group 'tz.co.asoft'
+version '1.0.0'
+
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        minSdkVersion 17
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+    jcenter()
+    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+    maven { url "https://kotlin.bintray.com/kotlinx" }
+    maven { url 'https://dl.bintray.com/kotlin/kotlin-js-wrappers' }
+    maven { url 'https://dl.bintray.com/kotlinx/kotlinx' }
+    maven { url "https://jitpack.io" }
+}
+
+
+kotlin {
+    jvm() {
+        compilations.all {
+            tasks[compileKotlinTaskName].kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
+
+    android() {
+        compilations.all {
+            tasks[compileKotlinTaskName].kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
+
+    js() {
+        browser{
+            testTask {
+                useKarma {
+                    useChrome()
+                }
+            }
+        }
+        nodejs()
+        compilations.all {
+            tasks[compileKotlinTaskName].kotlinOptions {
+                kotlinOptions.metaInfo = true
+                kotlinOptions.sourceMap = true
+                kotlinOptions.moduleKind = 'commonjs'
+                kotlinOptions.main = "call"
+            }
+        }
+    }
+
+    android {
+        publishLibraryVariants("release")
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation kotlin('stdlib-common')
+            }
+        }
+
+        commonTest {
+            dependencies {
+                implementation kotlin('test-common')
+                implementation kotlin('test-annotations-common')
+            }
+        }
+
+        jvmCommonMain {
+            dependencies {
+                implementation kotlin('stdlib-jdk8')
+            }
+        }
+
+        jvmCommonTest {
+            dependsOn jvmCommonMain
+            dependencies {
+                implementation kotlin('test')
+                implementation kotlin('test-junit')
+            }
+        }
+
+        jvmMain {
+            dependsOn jvmCommonMain
+            dependencies {
+                api "org.neo4j:neo4j-ogm-core:$neo4j_version"
+            }
+        }
+
+        jvmTest {
+            dependsOn jvmMain
+            dependsOn jvmCommonTest
+        }
+
+        androidMain {
+            dependsOn jvmCommonMain
+            dependencies {
+            }
+        }
+
+        jsMain {
+            dependencies {
+                implementation kotlin('stdlib-js')
+            }
+        }
+
+        jsTest {
+            dependsOn jsMain
+            dependencies {
+                implementation kotlin('test-js')
+            }
+        }
+    }
+}
