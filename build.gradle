@@ -2,6 +2,7 @@ buildscript {
     ext {
         kotlin_version = '1.3.41'
         neo4j_version = "3.1.2"
+        persist_version = "2.4.0"
     }
 
     repositories {
@@ -26,7 +27,7 @@ tasks.whenTaskAdded { task ->
 }
 
 group 'tz.co.asoft'
-version '1.0.2'
+version '1.1.0'
 
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
@@ -109,6 +110,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation kotlin('stdlib-common')
+                api "com.github.andylamax.asoft-persist:asoft-persist-metadata:$persist_version"
             }
         }
 
@@ -119,42 +121,33 @@ kotlin {
             }
         }
 
-        jvmCommonMain {
+        jvmMain {
             dependencies {
                 implementation kotlin('stdlib-jdk8')
-            }
-        }
-
-        jvmCommonTest {
-            dependsOn jvmCommonMain
-            dependencies {
-                implementation kotlin('test')
-                implementation kotlin('test-junit')
-            }
-        }
-
-        jvmMain {
-            dependsOn jvmCommonMain
-            dependencies {
+                api "com.github.andylamax.asoft-persist:asoft-persist-jvm:$persist_version"
                 api "org.neo4j:neo4j-ogm-api:$neo4j_version"
                 api "org.neo4j:neo4j-ogm-core:$neo4j_version"
             }
         }
 
         jvmTest {
-            dependsOn jvmMain
-            dependsOn jvmCommonTest
+            dependencies {
+                implementation kotlin('test')
+                implementation kotlin('test-junit')
+            }
         }
 
         androidMain {
-            dependsOn jvmCommonMain
             dependencies {
+                implementation kotlin('stdlib-jdk8')
+                api "com.github.andylamax.asoft-persist:asoft-persist-android:$persist_version"
             }
         }
 
         jsMain {
             dependencies {
                 implementation kotlin('stdlib-js')
+                api "com.github.andylamax.asoft-persist:asoft-persist-js:$persist_version"
             }
         }
 
